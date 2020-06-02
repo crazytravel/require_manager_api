@@ -1,0 +1,64 @@
+CREATE SEQUENCE SEQ_STRING_KEY;
+
+CREATE TABLE DC_USER
+(
+    id            VARCHAR(100) NOT NULL PRIMARY KEY,
+    username      VARCHAR(200) NOT NULL UNIQUE,
+    password      VARCHAR(200) NOT NULL,
+    nickname      VARCHAR(255) NULL,
+    real_name     VARCHAR(255) NULL,
+    phone         VARCHAR(20)  NULL,
+    email         VARCHAR(100) NULL,
+    who_is_who_id VARCHAR(100) NULL,
+    is_active     BOOLEAN DEFAULT (true),
+    created_at    TIMESTAMP,
+    modified_at   TIMESTAMP
+);
+
+CREATE TABLE DC_ROLE
+(
+    id          VARCHAR(100) PRIMARY KEY,
+    code        VARCHAR(200) NOT NULL UNIQUE,
+    name        VARCHAR(200) NOT NULL UNIQUE,
+    description TEXT,
+    created_at  TIMESTAMP,
+    modified_at TIMESTAMP
+);
+
+CREATE TABLE DC_PERMISSION
+(
+    id VARCHAR(100) PRIMARY KEY,
+    code VARCHAR(200) NOT NULL UNIQUE,
+    name VARCHAR(200) NOT NULL UNIQUE,
+    description TEXT,
+    created_at  TIMESTAMP,
+    modified_at TIMESTAMP
+);
+
+CREATE TABLE DC_USER_ROLE
+(
+    id varchar(100) primary key,
+    user_id varchar(100) not null,
+    role_id varchar(100) not null,
+    created_at timestamp,
+    modified_at timestamp
+);
+
+CREATE TABLE DC_ROLE_PERMISSION
+(
+    id varchar(100) primary key,
+    role_id varchar(100) not null,
+    permission_id varchar(100) not null,
+    created_at timestamp,
+    modified_at timestamp
+);
+
+CREATE TABLE DC_TEMPLATE
+(
+
+);
+
+CREATE TABLE DC_TASK
+(
+
+);

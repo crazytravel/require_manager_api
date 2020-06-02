@@ -1,0 +1,34 @@
+# DataSource Config
+
+
+#    driver-class-name: org.h2.Driver
+#    schema: classpath:db/schema-h2.sql
+#    data: classpath:db/data-h2.sql
+#    url: jdbc:h2:mem:test
+#    username: root
+#    password: test
+
+logging:
+  level:
+    cc.iteck: debug
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    cache-enabled: false
+    map-underscore-to-camel-case: true
+    #  #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
+    #  global-config:
+    #    id-type: 0
+    #    #字段策略 0:"忽略判断",1:"非 NULL 判断"),2:"非空判断"
+    #    field-strategy: 2
+    #    #驼峰下划线转换
+    #    db-column-underline: true
+    #    #刷新mapper 调试神器
+    #    refresh-mapper: true
+    #    #数据库大写下划线转换
+    #    capital-mode: true
+    #逻辑删除配置（下面3个配置）
+#      sql-injector: com.baomidou.mybatisplus.mapper.LogicSqlInjector
+#      logic-delete-value: 1
+#      logic-not-delete-value: 0
