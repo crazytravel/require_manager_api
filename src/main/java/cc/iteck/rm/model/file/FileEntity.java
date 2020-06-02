@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("dc_file")
+@TableName("rm_file")
 public class FileEntity extends AbstractEntity {
 
 }

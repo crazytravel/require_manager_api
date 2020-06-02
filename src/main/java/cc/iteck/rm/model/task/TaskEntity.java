@@ -7,6 +7,6 @@ import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-@TableName("dc_task")
+@TableName("rm_task")
 public class TaskEntity extends AbstractEntity {
 }

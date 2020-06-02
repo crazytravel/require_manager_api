@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
-@TableName("dc_template")
+@TableName("rm_template")
 @Data
 public class TemplateEntity extends AbstractEntity {
 }

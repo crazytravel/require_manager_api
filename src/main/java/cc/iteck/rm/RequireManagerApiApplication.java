@@ -6,10 +6,10 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @EnableTransactionManagement
 @SpringBootApplication
-public class DigitalChoppingApiApplication {
+public class RequireManagerApiApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DigitalChoppingApiApplication.class, args);
+        SpringApplication.run(RequireManagerApiApplication.class, args);
     }
 
 }

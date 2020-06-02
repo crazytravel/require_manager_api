@@ -11,7 +11,7 @@ import lombok.*;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("dc_user")
+@TableName("rm_user")
 public class UserEntity extends AbstractEntity {
 
     private String username;

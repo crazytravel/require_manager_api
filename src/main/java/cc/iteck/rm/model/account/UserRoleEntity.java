@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@TableName("dc_user_role")
+@TableName("rm_user_role")
 public class UserRoleEntity extends AbstractEntity {
 
     private String userId;

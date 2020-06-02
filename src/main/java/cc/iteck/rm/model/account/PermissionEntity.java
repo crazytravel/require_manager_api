@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("dc_permission")
+@TableName("rm_permission")
 public class PermissionEntity extends AbstractEntity {
 
     private String code;
