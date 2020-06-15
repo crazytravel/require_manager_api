@@ -13,7 +13,7 @@ public interface RoleService {
 
     void deleteRole(String id);
 
-    RoleDto findRole(String id);
+    RoleDto getRole(String id);
 
     List<RoleDto> listRoles();
 

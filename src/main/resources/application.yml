@@ -15,7 +15,7 @@ logging:
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
   configuration:
-    cache-enabled: false
+#    cache-enabled: false
     map-underscore-to-camel-case: true
     #  #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
     #  global-config:
@@ -32,3 +32,9 @@ mybatis-plus:
 #      sql-injector: com.baomidou.mybatisplus.mapper.LogicSqlInjector
 #      logic-delete-value: 1
 #      logic-not-delete-value: 0
+
+jwt:
+  header: Authorization
+  secret: require_manager
+  expiration: 6400
+  tokenHead: "Bearer "

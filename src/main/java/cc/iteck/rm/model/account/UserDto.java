@@ -4,6 +4,7 @@ import cc.iteck.rm.model.AbstractDto;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -13,7 +14,7 @@ import javax.validation.constraints.NotNull;
 public class UserDto extends AbstractDto {
 
     private static final long serialVersionUID = 3684861548582542137L;
-    
+
     private String id;
     @NotNull
     private String username;
@@ -25,4 +26,7 @@ public class UserDto extends AbstractDto {
     private String email;
     private String whoIsWhoId;
     private Boolean isActive;
+
+    private List<RoleDto> roles;
+    private List<PermissionDto> permissions;
 }

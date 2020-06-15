@@ -45,7 +45,7 @@ public class RoleController {
 
     @GetMapping("/{id}")
     public ResponseEntity<RoleDto> getRole(@PathVariable String id) {
-        var role = roleService.findRole(id);
+        var role = roleService.getRole(id);
         return ResponseEntity.ok(role);
     }
 

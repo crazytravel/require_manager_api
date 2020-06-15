@@ -2,15 +2,14 @@ package cc.iteck.rm.service.impl;
 
 import cc.iteck.rm.exception.ResourceNotFoundException;
 import cc.iteck.rm.exception.ResourceOperateFailedException;
+import cc.iteck.rm.mapper.RolePermissionMapper;
 import cc.iteck.rm.mapper.UserMapper;
 import cc.iteck.rm.mapper.UserRoleMapper;
+import cc.iteck.rm.model.account.*;
 import cc.iteck.rm.service.UserService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import cc.iteck.rm.model.account.UserDto;
-import cc.iteck.rm.model.account.UserEntity;
-import cc.iteck.rm.model.account.UserRoleDto;
-import cc.iteck.rm.model.account.UserRoleEntity;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +31,9 @@ public class UserServiceImpl implements UserService {
     public UserDto createUser(UserDto userDto) {
         var userEntity = UserEntity.builder().build();
         BeanUtils.copyProperties(userDto, userEntity);
+
+        var password = PasswordEncoderFactories.createDelegatingPasswordEncoder().encode(userDto.getPassword());
+        userEntity.setPassword(password);
         try {
             userMapper.insert(userEntity);
         } catch (Exception e) {
@@ -59,6 +61,21 @@ public class UserServiceImpl implements UserService {
             throw new ResourceNotFoundException("cannot found user by id: " + id);
         }
         BeanUtils.copyProperties(userEntity, userDto);
+        return userDto;
+    }
+
+    @Override
+    public UserDto findUserByUsername(String username) {
+        var userEntity = userMapper.selectOne(Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getUsername, username));
+        var userDto = UserDto.builder().build();
+        BeanUtils.copyProperties(userEntity, userDto);
+        var permissions = userMapper.findUserPermissionsByUsername(username);
+        var permissionDtos = permissions.stream().map(permission -> {
+            var permissionDto = PermissionDto.builder().build();
+            BeanUtils.copyProperties(permission, permissionDto);
+            return permissionDto;
+        }).collect(Collectors.toList());
+        userDto.setPermissions(permissionDtos);
         return userDto;
     }
 

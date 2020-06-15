@@ -65,7 +65,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public RoleDto findRole(String id) {
+    public RoleDto getRole(String id) {
         var roleDto = RoleDto.builder().build();
         var roleEntity = roleMapper.selectById(id);
         if (roleEntity == null) {

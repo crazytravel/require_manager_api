@@ -1,44 +1,48 @@
 package cc.iteck.rm.mapper;
 
 import cc.iteck.rm.model.account.UserEntity;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @SpringBootTest
 @ActiveProfiles("test")
-@Transactional
-@Rollback
+@TestMethodOrder(value = MethodOrderer.OrderAnnotation.class)
 public class UserMapperTest {
 
     @Autowired
     private UserMapper userMapper;
 
-
-    UserEntity prepareData() {
+    @Test
+    @Order(1)
+    public void test1Insert() {
         var user = UserEntity.builder().build();
         user.setUsername("wangshuo");
         user.setPassword("abc124");
         user.setNickname("crazytravel");
-        return user;
-    }
-
-    @Test
-    public void test1Insert() {
-        var user = prepareData();
         var count = userMapper.insert(user);
         assert count > 0;
     }
 
     @Test
+    @Order(2)
+    void test3Select() {
+        var user = userMapper.selectOne(Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getUsername, "wangshuo"));
+        assert user != null;
+        log.debug("userEntity: {}", user);
+    }
+
+    @Test
+    @Order(3)
     public void test2Update() {
-        var user = prepareData();
-        userMapper.insert(user);
+        var user = userMapper.selectOne(Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getUsername, "wangshuo"));
         user.setNickname("Hello");
         userMapper.updateById(user);
         log.debug("修改后的用户:{}", user);
@@ -46,19 +50,9 @@ public class UserMapperTest {
     }
 
     @Test
-    void test3Select() {
-        var user = prepareData();
-        userMapper.insert(user);
-        UserEntity userEntity = userMapper.selectById(user.getId());
-        assert userEntity != null;
-        log.debug("userEntity: {}", userEntity);
-    }
-
-    @Test
+    @Order(4)
     void test4Delete() {
-        var user = prepareData();
-        userMapper.insert(user);
-        int count = userMapper.deleteById(user.getId());
+        var count = userMapper.delete(Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getUsername, "wangshuo"));
         assert count > 0;
     }
 }

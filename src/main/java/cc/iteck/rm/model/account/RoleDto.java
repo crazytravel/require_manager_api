@@ -4,6 +4,8 @@ package cc.iteck.rm.model.account;
 import cc.iteck.rm.model.AbstractDto;
 import lombok.*;
 
+import java.util.List;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
@@ -18,4 +20,5 @@ public class RoleDto extends AbstractDto {
     private String name;
     private String description;
 
+    private List<PermissionDto> permissionDto;
 }
