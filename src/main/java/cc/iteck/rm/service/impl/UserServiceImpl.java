@@ -1,8 +1,8 @@
 package cc.iteck.rm.service.impl;
 
+import cc.iteck.rm.exception.AuthenticationException;
 import cc.iteck.rm.exception.ResourceNotFoundException;
 import cc.iteck.rm.exception.ResourceOperateFailedException;
-import cc.iteck.rm.mapper.RolePermissionMapper;
 import cc.iteck.rm.mapper.UserMapper;
 import cc.iteck.rm.mapper.UserRoleMapper;
 import cc.iteck.rm.model.account.*;
@@ -127,6 +127,19 @@ public class UserServiceImpl implements UserService {
             BeanUtils.copyProperties(userRoleEntity, userRoleDto);
             return userRoleDto;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public UserDto findUsernameAndPassword(String username, String password) {
+        var userDto = findUserByUsername(username);
+        if (userDto == null) {
+            throw new AuthenticationException("cannot found user with the username: " + username);
+        }
+        var valid = PasswordEncoderFactories.createDelegatingPasswordEncoder().matches(password, userDto.getPassword());
+        if (!valid) {
+            throw new AuthenticationException("auth failed, please input the correct password");
+        }
+        return userDto;
     }
 }
 

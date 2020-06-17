@@ -1,13 +1,18 @@
 package cc.iteck.rm.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ErrorWrapper {
-    private HttpStatus error;
-    private Integer status;
-    private String message;
+    private Integer code;
+    private String error;
+    @JsonProperty("error_description")
+    private String errorDescription;
 }

@@ -7,15 +7,19 @@ import cc.iteck.rm.service.PermissionService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.List;
 import java.util.Map;
@@ -27,18 +31,47 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
-@SpringBootTest
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Transactional
-@Rollback
+@AutoConfigureMockMvc
 @Slf4j
+@SpringBootTest
+@WithMockUser(username = "user", password = "user")
+@Rollback
+@Transactional
 class RoleControllerTest {
 
     @Autowired
+    private WebApplicationContext wac;
     private MockMvc mockMvc;
     @Autowired
     private PermissionService permissionService;
+
+    @BeforeEach
+    public void setUp() throws Exception {
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(wac)
+//                .apply(springSecurity())  // 这里配置Security认证
+                .build();
+        createNewRole();
+    }
+
+
+    void createNewRole() throws Exception {
+        var role = RoleDto.builder()
+                .code("ADMIN")
+                .name("管理员")
+                .description("admin user role")
+                .build();
+        var objectMapper = new ObjectMapper();
+        var json = objectMapper.writeValueAsString(role);
+        mockMvc.perform(post("/v1/roles")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.code").value("ADMIN"))
+                .andExpect(jsonPath("$.id").isNotEmpty());
+    }
 
     void createNewPermission(String permissionCode) {
         var permissionDto = PermissionDto.builder()
@@ -60,27 +93,7 @@ class RoleControllerTest {
     }
 
     @Test
-    void createNewRole() throws Exception {
-        var role = RoleDto.builder()
-                .code("ADMIN")
-                .name("管理员")
-                .description("admin user role")
-                .build();
-        var objectMapper = new ObjectMapper();
-        var json = objectMapper.writeValueAsString(role);
-        mockMvc.perform(post("/v1/roles")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json))
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.code").value("ADMIN"))
-                .andExpect(jsonPath("$.id").isNotEmpty());
-    }
-
-
-    @Test
     void updateRole() throws Exception {
-        createNewRole();
         var roles = getRoles();
         assert roles != null && roles.size() > 0;
         var originalUser = roles.get(0);
@@ -100,7 +113,6 @@ class RoleControllerTest {
 
     @Test
     void given_id_when_found_then_return() throws Exception {
-        createNewRole();
         var roles = getRoles();
         assert roles != null && roles.size() > 0;
         var originalUser = roles.get(0);
@@ -112,7 +124,6 @@ class RoleControllerTest {
 
     @Test
     void deleteRole() throws Exception {
-        createNewRole();
         var roles = getRoles();
         assert roles != null && roles.size() > 0;
         var originalUser = roles.get(0);
@@ -123,7 +134,6 @@ class RoleControllerTest {
 
     @Test
     void test_when_role_not_found_then_throw_not_found_exception() throws Exception {
-        createNewRole();
         mockMvc.perform(get("/v1/roles/fakeId"))
                 .andDo(print())
                 .andExpect(status().isNotFound());
@@ -131,7 +141,6 @@ class RoleControllerTest {
 
     @Test
     void test_role_grant_permission() throws Exception {
-        createNewRole();
         createNewPermission("READ");
         createNewPermission("WRITE");
         var permissions = permissionService.findPermissions();

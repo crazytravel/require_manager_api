@@ -1,7 +1,5 @@
 package cc.iteck.rm.config;
 
-import com.baomidou.mybatisplus.core.incrementer.IKeyGenerator;
-import com.baomidou.mybatisplus.extension.incrementer.PostgreKeyGenerator;
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.pagination.optimize.JsqlParserCountOptimize;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -27,13 +25,9 @@ public class MybatisPlusConfig {
         return paginationInterceptor;
     }
 
-    @Bean
-    public IKeyGenerator keyGenerator() {
-        return new PostgreKeyGenerator();
-    }
 
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer customizer(){
+    public Jackson2ObjectMapperBuilderCustomizer customizer() {
         return builder -> builder.featuresToEnable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
     }
 
