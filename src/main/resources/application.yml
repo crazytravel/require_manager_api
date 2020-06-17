@@ -37,9 +37,16 @@ mybatis-plus:
 #      logic-delete-value: 1
 #      logic-not-delete-value: 0
 
+
 jwt:
   header: Authorization
-  secret: require_manager
   issuer: require_manager
-  expiration: 6400
   token-type: "Bearer "
+  access-token:
+    cookie-name: access_token
+    secret: require_manager
+    expiration: 7200
+  refresh-token:
+    cookie-name: refresh_token
+    secret: require_manager_refresh
+    expiration: 604800

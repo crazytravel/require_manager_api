@@ -20,5 +20,7 @@ public class TokenWrapper {
     private Long expiresIn;
     @JsonProperty("refresh_token")
     private String refreshToken;
+    @JsonProperty("refresh_expires_in")
+    private Long refreshExpiresIn;
 
 }

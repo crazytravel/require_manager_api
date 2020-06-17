@@ -13,6 +13,8 @@ public interface UserService {
 
     UserDto findUserById(String id);
 
+    UserDto findUserWithPermissionsByUsername(String username);
+
     UserDto findUserByUsername(String username);
 
     UserDto updateUser(UserDto userDto);

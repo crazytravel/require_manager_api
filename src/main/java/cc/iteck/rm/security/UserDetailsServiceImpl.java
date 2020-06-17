@@ -18,7 +18,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        var userDto = userService.findUserByUsername(username);
+        var userDto = userService.findUserWithPermissionsByUsername(username);
         return JwtUserDetails.builder()
                 .userId(userDto.getId())
                 .username(userDto.getUsername())

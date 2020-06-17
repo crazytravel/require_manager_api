@@ -27,11 +27,17 @@ public class JwtTokenProvider {
     @Value("${jwt.issuer}")
     private String issuer;
 
-    @Value("${jwt.secret}")
-    private String secret;
+    @Value("${jwt.access-token.secret}")
+    private String accessTokenSecret;
 
-    @Value("${jwt.expiration}")
-    private Long expiration;
+    @Value("${jwt.access-token.expiration}")
+    private Long accessTokenExpiration;
+
+    @Value("${jwt.refresh-token.secret}")
+    private String refreshTokenSecret;
+
+    @Value("${jwt.refresh-token.expiration}")
+    private Long refreshTokenExpiration;
 
 
     public String getUsernameFromToken(String token) {
@@ -50,32 +56,20 @@ public class JwtTokenProvider {
     }
 
     public TokenWrapper generateToken(JwtUserDetails jwtUserDetails) {
-        final var createdDate = new Date();
-        final var expirationDate = new Date(createdDate.getTime() + expiration * 1000);
-        List<String> authorities = jwtUserDetails
-                .getPermissions()
-                .stream()
-                .map(PermissionDto::getAuthority).collect(Collectors.toList());
-        var algorithmHS = Algorithm.HMAC256(secret);
-        String accessToken = JWT.create()
-                .withIssuer(issuer)
-                .withIssuedAt(createdDate)
-                .withSubject(jwtUserDetails.getUserId())
-                .withClaim("username", jwtUserDetails.getUsername())
-                .withClaim("authorities", authorities)
-                .withExpiresAt(expirationDate)
-                .sign(algorithmHS);
+        var accessToken = generateAccessToken(jwtUserDetails);
+        var refreshToken = generateRefreshToken();
         return TokenWrapper.builder()
                 .tokenType(tokenType)
                 .accessToken(accessToken)
-                .refreshToken("") // TODO implement me
-                .expiresIn(expiration)
+                .refreshToken(refreshToken)
+                .expiresIn(accessTokenExpiration)
+                .refreshExpiresIn(refreshTokenExpiration)
                 .build();
     }
 
     public Boolean verifyToken(String token, UserDetails userDetails) {
         try {
-            Algorithm algorithm = Algorithm.HMAC256(secret);
+            Algorithm algorithm = Algorithm.HMAC256(accessTokenSecret);
             JWTVerifier verifier = JWT.require(algorithm)
                     .withIssuer(issuer)
                     .withClaim("username", userDetails.getUsername())
@@ -84,8 +78,64 @@ public class JwtTokenProvider {
             return jwt != null;
         } catch (JWTVerificationException exception) {
             //Invalid signature/claims
+            exception.printStackTrace();
             return false;
         }
+    }
+
+    public TokenWrapper refreshToken(String accessToken, String refreshToken, Date lastPasswordReset) {
+        canTokenBeRefreshed(refreshToken, lastPasswordReset);
+        var currentTimeMillis = System.currentTimeMillis();
+        final var createdDate = new Date(currentTimeMillis);
+        final var expirationDate = new Date(currentTimeMillis + accessTokenExpiration);
+        var claims = parseToken(accessToken);
+        var algorithmHS = Algorithm.HMAC256(accessTokenSecret);
+        accessToken = JWT.create()
+                .withIssuer(issuer)
+                .withIssuedAt(createdDate)
+                .withSubject(claims.getSubject())
+                .withClaim("username", claims.getClaim("username").asString())
+                .withClaim("authorities", claims.getClaim("authorities").asList(String.class))
+                .withExpiresAt(expirationDate)
+                .sign(algorithmHS);
+        refreshToken = generateRefreshToken();
+        return TokenWrapper.builder()
+                .tokenType(tokenType)
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn(accessTokenExpiration)
+                .refreshExpiresIn(refreshTokenExpiration)
+                .build();
+    }
+
+    private String generateAccessToken(JwtUserDetails jwtUserDetails) {
+        var currentTimeMillis = System.currentTimeMillis();
+        final var createdDate = new Date(currentTimeMillis);
+        final var expirationDate = new Date(currentTimeMillis + accessTokenExpiration * 1000);
+        List<String> authorities = jwtUserDetails
+                .getPermissions()
+                .stream()
+                .map(PermissionDto::getAuthority).collect(Collectors.toList());
+        var algorithmHS = Algorithm.HMAC256(accessTokenSecret);
+        return JWT.create()
+                .withIssuer(issuer)
+                .withIssuedAt(createdDate)
+                .withSubject(jwtUserDetails.getUserId())
+                .withClaim("username", jwtUserDetails.getUsername())
+                .withClaim("authorities", authorities)
+                .withExpiresAt(expirationDate)
+                .sign(algorithmHS);
+    }
+
+    private String generateRefreshToken() {
+        var currentTimeMillis = System.currentTimeMillis();
+        final var createdDate = new Date(currentTimeMillis);
+        final var expirationDate = new Date(currentTimeMillis + refreshTokenExpiration * 1000);
+        var algorithmHS = Algorithm.HMAC256(refreshTokenSecret);
+        return JWT.create().withIssuer(issuer)
+                .withIssuedAt(createdDate)
+                .withExpiresAt(expirationDate)
+                .sign(algorithmHS);
     }
 
     private DecodedJWT parseToken(String token) {
@@ -103,19 +153,11 @@ public class JwtTokenProvider {
     }
 
 
-    public Boolean canTokenBeRefreshed(String token, Date lastPasswordReset) {
-        final Date created = getCreatedDateFromToken(token);
+    private Boolean canTokenBeRefreshed(String refreshToken, Date lastPasswordReset) {
+        final Date created = getCreatedDateFromToken(refreshToken);
         return !isCreatedBeforeLastPasswordReset(created, lastPasswordReset)
-                && (!isTokenExpired(token));
+                && (!isTokenExpired(refreshToken));
     }
-
-//    public String refreshToken(String token) {
-//        var claims = parseToken(token);
-//        if (claims != null) {
-//            return generateToken(claims.getSubject(), claims);
-//        }
-//        return null;
-//    }
 
 
 }

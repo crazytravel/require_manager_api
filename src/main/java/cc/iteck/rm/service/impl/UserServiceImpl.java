@@ -65,10 +65,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto findUserByUsername(String username) {
-        var userEntity = userMapper.selectOne(Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getUsername, username));
-        var userDto = UserDto.builder().build();
-        BeanUtils.copyProperties(userEntity, userDto);
+    public UserDto findUserWithPermissionsByUsername(String username) {
+        var userDto = findUserByUsername(username);
         var permissions = userMapper.findUserPermissionsByUsername(username);
         var permissionDtos = permissions.stream().map(permission -> {
             var permissionDto = PermissionDto.builder().build();
@@ -76,6 +74,17 @@ public class UserServiceImpl implements UserService {
             return permissionDto;
         }).collect(Collectors.toList());
         userDto.setPermissions(permissionDtos);
+        return userDto;
+    }
+
+    @Override
+    public UserDto findUserByUsername(String username) {
+        var userEntity = userMapper.selectOne(Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getUsername, username));
+        if (userEntity == null) {
+            throw new ResourceNotFoundException("cannot found the user with username: " + username);
+        }
+        var userDto = UserDto.builder().build();
+        BeanUtils.copyProperties(userEntity, userDto);
         return userDto;
     }
 
@@ -131,7 +140,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto findUsernameAndPassword(String username, String password) {
-        var userDto = findUserByUsername(username);
+        var userDto = findUserWithPermissionsByUsername(username);
         if (userDto == null) {
             throw new AuthenticationException("cannot found user with the username: " + username);
         }

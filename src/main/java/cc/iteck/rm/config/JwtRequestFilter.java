@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -19,8 +20,8 @@ import java.io.IOException;
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
-    @Value("${jwt.header}")
-    private String jwtHeader;
+    @Value("${jwt.access-token.cookie-name}")
+    private String accessTokenCookieName;
 
     @Value("${jwt.token-type}")
     private String tokenType;
@@ -37,16 +38,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        final String authorization = request.getHeader(jwtHeader);
-        String jwt = null;
+        String accessToken = null;
+        Cookie[] cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            if (accessTokenCookieName.equals(cookie.getName())) {
+                accessToken = cookie.getValue();
+                break;
+            }
+        }
         String username = null;
-        if (authorization != null && authorization.startsWith(tokenType)) {
-            jwt = authorization.substring(7);
-            username = jwtTokenProvider.getUsernameFromToken(jwt);
+        if (accessToken != null) {
+            username = jwtTokenProvider.getUsernameFromToken(accessToken);
         }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             var userDetails = userDetailServices.loadUserByUsername(username);
-            if (jwtTokenProvider.verifyToken(jwt, userDetails)) {
+            if (jwtTokenProvider.verifyToken(accessToken, userDetails)) {
                 var usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
