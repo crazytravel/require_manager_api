@@ -1,5 +1,6 @@
 package cc.iteck.rm.controller;
 
+import cc.iteck.rm.exception.AuthenticationException;
 import cc.iteck.rm.model.account.LoginForm;
 import cc.iteck.rm.model.account.UserDto;
 import cc.iteck.rm.model.security.JwtUserDetails;
@@ -7,11 +8,10 @@ import cc.iteck.rm.model.security.TokenWrapper;
 import cc.iteck.rm.security.JwtTokenProvider;
 import cc.iteck.rm.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -39,7 +39,7 @@ public class AuthController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<TokenWrapper> authToken(@RequestBody LoginForm loginForm, HttpServletResponse response) {
+    public ResponseEntity<TokenWrapper> authToken(@RequestBody LoginForm loginForm) {
         UserDto userDto = userService.findUsernameAndPassword(loginForm.getUsername(), loginForm.getPassword());
         var jwtUserDetails = JwtUserDetails.builder()
                 .userId(userDto.getId())
@@ -48,17 +48,25 @@ public class AuthController {
                 .permissions(userDto.getPermissions())
                 .build();
         var token = jwtTokenProvider.generateToken(jwtUserDetails);
-        Cookie accessTokenCookie = new Cookie(accessTokenCookieName, token.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setMaxAge(token.getExpiresIn().intValue());
-//        accessTokenCookie.setSecure(true);
-        Cookie refreshTokenCookie = new Cookie(refreshTokenCookieName, token.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setMaxAge(token.getRefreshExpiresIn().intValue());
-//        refreshTokenCookie.setSecure(true);
-        response.addCookie(accessTokenCookie);
-        response.addCookie(refreshTokenCookie);
-        return ResponseEntity.ok(token);
+        ResponseCookie accessTokenCookie = ResponseCookie.from(accessTokenCookieName, token.getAccessToken())
+                .sameSite("Strict")
+                .httpOnly(true)
+                .secure(false)  // TODO for production env should be true
+                .maxAge(token.getExpiresIn())
+                .path("/")
+                .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from(refreshTokenCookieName, token.getRefreshToken())
+                .sameSite("Strict")
+                .httpOnly(true)
+                .secure(false) // TODO for production env should be true
+                .maxAge(token.getRefreshExpiresIn())
+                .path("/")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(token);
     }
 
     @PostMapping("/refresh")
@@ -78,12 +86,33 @@ public class AuthController {
                 refreshToken = cookie.getValue();
             }
         }
+        if (accessToken == null) {
+            throw new AuthenticationException("cannot found access_token from cookie");
+        }
         var username = jwtTokenProvider.getUsernameFromToken(accessToken);
         var userDto = userService.findUserByUsername(username);
         var lastModifyDate = Date.from(userDto.getModifiedAt().atZone(ZoneId.systemDefault())
                 .toInstant());
         TokenWrapper tokenWrapper = jwtTokenProvider.refreshToken(accessToken, refreshToken, lastModifyDate);
         return ResponseEntity.ok(tokenWrapper);
+    }
+
+    @GetMapping("/user-info")
+    public ResponseEntity<UserDto> userInfo(HttpServletRequest request) {
+        String accessToken = null;
+        Cookie[] cookies = request.getCookies();
+        for (Cookie cookie : cookies) {
+            if (accessTokenCookieName.equals(cookie.getName())) {
+                accessToken = cookie.getValue();
+                break;
+            }
+        }
+        if (accessToken == null) {
+            throw new AuthenticationException("cannot found access_token from cookie");
+        }
+        String username = jwtTokenProvider.getUsernameFromToken(accessToken);
+        UserDto userDto = userService.findUserWithPermissionsByUsername(username);
+        return ResponseEntity.ok(userDto);
     }
 
 }
