@@ -87,7 +87,7 @@ public class JwtTokenProvider {
         canTokenBeRefreshed(refreshToken, lastPasswordReset);
         var currentTimeMillis = System.currentTimeMillis();
         final var createdDate = new Date(currentTimeMillis);
-        final var expirationDate = new Date(currentTimeMillis + accessTokenExpiration);
+        final var expirationDate = new Date(currentTimeMillis + accessTokenExpiration * 1000);
         var claims = parseToken(accessToken);
         var algorithmHS = Algorithm.HMAC256(accessTokenSecret);
         accessToken = JWT.create()
