@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.sql.Date;
 import java.time.ZoneId;
 
@@ -48,25 +47,7 @@ public class AuthController {
                 .permissions(userDto.getPermissions())
                 .build();
         var token = jwtTokenProvider.generateToken(jwtUserDetails);
-        ResponseCookie accessTokenCookie = ResponseCookie.from(accessTokenCookieName, token.getAccessToken())
-                .sameSite("Strict")
-                .httpOnly(true)
-                .secure(false)  // TODO for production env should be true
-                .maxAge(token.getExpiresIn())
-                .path("/")
-                .build();
-
-        ResponseCookie refreshTokenCookie = ResponseCookie.from(refreshTokenCookieName, token.getRefreshToken())
-                .sameSite("Strict")
-                .httpOnly(true)
-                .secure(false) // TODO for production env should be true
-                .maxAge(token.getRefreshExpiresIn())
-                .path("/")
-                .build();
-        return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(token);
+        return setCookie(token);
     }
 
     @PostMapping("/refresh")
@@ -74,6 +55,9 @@ public class AuthController {
         String accessToken = null;
         String refreshToken = null;
         Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            throw new AuthenticationException("cannot found access_token from cookie");
+        }
         for (Cookie cookie : cookies) {
             if (accessToken != null && refreshToken != null) {
                 break;
@@ -94,7 +78,7 @@ public class AuthController {
         var lastModifyDate = Date.from(userDto.getModifiedAt().atZone(ZoneId.systemDefault())
                 .toInstant());
         TokenWrapper tokenWrapper = jwtTokenProvider.refreshToken(accessToken, refreshToken, lastModifyDate);
-        return ResponseEntity.ok(tokenWrapper);
+        return setCookie(tokenWrapper);
     }
 
     @GetMapping("/user-info")
@@ -113,6 +97,39 @@ public class AuthController {
         String username = jwtTokenProvider.getUsernameFromToken(accessToken);
         UserDto userDto = userService.findUserWithPermissionsByUsername(username);
         return ResponseEntity.ok(userDto);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<TokenWrapper> logout() {
+        var token = TokenWrapper.builder()
+                .accessToken(null)
+                .refreshToken(null)
+                .refreshExpiresIn(0L)
+                .expiresIn(0L)
+                .build();
+        return setCookie(token);
+    }
+
+    private ResponseEntity<TokenWrapper> setCookie(TokenWrapper token) {
+        ResponseCookie accessTokenCookie = ResponseCookie.from(accessTokenCookieName, token.getAccessToken())
+                .sameSite("Strict")
+                .httpOnly(true)
+                .secure(false)  // TODO for production env should be true
+                .maxAge(token.getRefreshExpiresIn())
+                .path("/")
+                .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from(refreshTokenCookieName, token.getRefreshToken())
+                .sameSite("Strict")
+                .httpOnly(true)
+                .secure(false) // TODO for production env should be true
+                .maxAge(token.getRefreshExpiresIn())
+                .path("/")
+                .build();
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .body(token);
     }
 
 }

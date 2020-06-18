@@ -78,7 +78,7 @@ public class JwtTokenProvider {
             return jwt != null;
         } catch (JWTVerificationException exception) {
             //Invalid signature/claims
-            exception.printStackTrace();
+            log.info("verification token info: {}", exception.getMessage());
             return false;
         }
     }
