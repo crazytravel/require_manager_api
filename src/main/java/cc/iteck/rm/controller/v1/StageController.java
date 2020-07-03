@@ -21,6 +21,12 @@ public class StageController {
 
 
     @GetMapping
+    public ResponseEntity<List<StageDto>> findStagesByProjectId(@RequestParam String projectId) {
+        List<StageDto> stages = stageService.findStagesByProjectId(projectId);
+        return ResponseEntity.ok(stages);
+    }
+
+    @GetMapping
     public ResponseEntity<List<StageDto>> listStages() {
         List<StageDto> stages = stageService.findAllStages();
         return ResponseEntity.ok(stages);

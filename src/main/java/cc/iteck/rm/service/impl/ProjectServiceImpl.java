@@ -1,5 +1,7 @@
 package cc.iteck.rm.service.impl;
 
+import cc.iteck.rm.exception.ResourceNotFoundException;
+import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.ProjectMapper;
 import cc.iteck.rm.model.project.ProjectDto;
 import cc.iteck.rm.model.project.ProjectEntity;
@@ -34,7 +36,11 @@ public class ProjectServiceImpl implements ProjectService {
     public ProjectDto createNewProject(ProjectDto projectDto) {
         ProjectEntity projectEntity = ProjectEntity.builder().build();
         BeanUtils.copyProperties(projectDto, projectEntity);
-        projectMapper.insert(projectEntity);
+        try {
+            projectMapper.insert(projectEntity);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("create project failed, error: ", e);
+        }
         BeanUtils.copyProperties(projectEntity, projectDto);
         return projectDto;
     }
@@ -42,6 +48,9 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDto findProject(String id) {
         ProjectEntity projectEntity = projectMapper.selectById(id);
+        if (projectEntity == null) {
+            throw new ResourceNotFoundException("cannot found project by id: " + id);
+        }
         ProjectDto projectDto = ProjectDto.builder().build();
         BeanUtils.copyProperties(projectEntity, projectDto);
         return projectDto;
@@ -50,14 +59,25 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public ProjectDto updateProject(ProjectDto projectDto) {
         ProjectEntity projectEntity = projectMapper.selectById(projectDto.getId());
+        if (projectEntity == null) {
+            throw new ResourceNotFoundException("cannot found project by id: " + projectDto.getId());
+        }
         BeanUtils.copyProperties(projectDto, projectEntity);
-        projectMapper.updateById(projectEntity);
+        try {
+            projectMapper.updateById(projectEntity);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("create project failed, error: ", e);
+        }
         BeanUtils.copyProperties(projectEntity, projectDto);
         return projectDto;
     }
 
     @Override
     public void deleteProject(String id) {
-        projectMapper.deleteById(id);
+        try {
+            projectMapper.deleteById(id);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("delete project failed by id: " + id, e);
+        }
     }
 }

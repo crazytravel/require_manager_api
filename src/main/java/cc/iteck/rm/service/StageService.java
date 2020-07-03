@@ -14,4 +14,6 @@ public interface StageService {
     StageDto updateStage(StageDto stageDto);
 
     void deleteStage(String id);
+
+    List<StageDto> findStagesByProjectId(String projectId);
 }

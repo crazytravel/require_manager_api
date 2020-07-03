@@ -1,5 +1,7 @@
 package cc.iteck.rm.service.impl;
 
+import cc.iteck.rm.exception.ResourceNotFoundException;
+import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.TaskMapper;
 import cc.iteck.rm.model.task.TaskDto;
 import cc.iteck.rm.model.task.TaskEntity;
@@ -35,7 +37,11 @@ public class TaskServiceImpl implements TaskService {
     public TaskDto createNewTask(TaskDto taskDto) {
         TaskEntity taskEntity = TaskEntity.builder().build();
         BeanUtils.copyProperties(taskDto, taskEntity);
-        taskMapper.insert(taskEntity);
+        try {
+            taskMapper.insert(taskEntity);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("create task failed, error: ", e);
+        }
         BeanUtils.copyProperties(taskEntity, taskDto);
         return taskDto;
     }
@@ -43,6 +49,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDto findTask(String id) {
         TaskEntity taskEntity = taskMapper.selectById(id);
+        if (taskEntity == null) {
+            throw new ResourceNotFoundException("cannot found task by id: " + id);
+        }
         TaskDto taskDto = TaskDto.builder().build();
         BeanUtils.copyProperties(taskEntity, taskDto);
         return taskDto;
@@ -51,14 +60,25 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskDto updateTask(TaskDto taskDto) {
         TaskEntity taskEntity = taskMapper.selectById(taskDto.getId());
+        if (taskEntity == null) {
+            throw new ResourceNotFoundException("cannot found task by id: " + taskDto.getId());
+        }
         BeanUtils.copyProperties(taskDto, taskEntity);
-        taskMapper.updateById(taskEntity);
+        try {
+            taskMapper.updateById(taskEntity);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("create task failed, error: ", e);
+        }
         BeanUtils.copyProperties(taskEntity, taskDto);
         return taskDto;
     }
 
     @Override
     public void deleteTask(String id) {
-        taskMapper.deleteById(id);
+        try {
+            taskMapper.deleteById(id);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("delete task failed by id: " + id, e);
+        }
     }
 }

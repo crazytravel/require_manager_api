@@ -15,6 +15,6 @@ public class TaskEntity extends AbstractEntity {
     private String projectId;
     private String stageId;
     private String status;
-    private String previousTaskId;
-    private String nextTaskId;
+    private String previousId;
+    private String nextId;
 }

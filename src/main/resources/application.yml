@@ -14,7 +14,7 @@ logging:
 
 springdoc:
   swagger-ui:
-    path: /
+    path: /swagger-ui.html
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
@@ -45,7 +45,7 @@ jwt:
   access-token:
     cookie-name: access_token
     secret: require_manager
-    expiration: 120
+    expiration: 7200
   refresh-token:
     cookie-name: refresh_token
     secret: require_manager_refresh

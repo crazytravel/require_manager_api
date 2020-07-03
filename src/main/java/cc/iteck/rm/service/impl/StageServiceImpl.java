@@ -1,5 +1,7 @@
 package cc.iteck.rm.service.impl;
 
+import cc.iteck.rm.exception.ResourceNotFoundException;
+import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.StageMapper;
 import cc.iteck.rm.model.stage.StageDto;
 import cc.iteck.rm.model.stage.StageEntity;
@@ -35,7 +37,11 @@ public class StageServiceImpl implements StageService {
     public StageDto createNewStage(StageDto stageDto) {
         StageEntity stageEntity = StageEntity.builder().build();
         BeanUtils.copyProperties(stageDto, stageEntity);
-        stageMapper.insert(stageEntity);
+        try {
+            stageMapper.insert(stageEntity);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("create stage failed, error: ", e);
+        }
         BeanUtils.copyProperties(stageEntity, stageDto);
         return stageDto;
     }
@@ -43,6 +49,9 @@ public class StageServiceImpl implements StageService {
     @Override
     public StageDto findStage(String id) {
         StageEntity stageEntity = stageMapper.selectById(id);
+        if (stageEntity == null) {
+            throw new ResourceNotFoundException("cannot found stage by id: " + id);
+        }
         StageDto stageDto = StageDto.builder().build();
         BeanUtils.copyProperties(stageEntity, stageDto);
         return stageDto;
@@ -51,14 +60,33 @@ public class StageServiceImpl implements StageService {
     @Override
     public StageDto updateStage(StageDto stageDto) {
         StageEntity stageEntity = stageMapper.selectById(stageDto.getId());
+        if (stageEntity == null) {
+            throw new ResourceNotFoundException("cannot found stage by id: " + stageDto.getId());
+        }
         BeanUtils.copyProperties(stageDto, stageEntity);
-        stageMapper.updateById(stageEntity);
+        try {
+            stageMapper.updateById(stageEntity);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("create stage failed, error: ", e);
+        }
         BeanUtils.copyProperties(stageEntity, stageDto);
         return stageDto;
     }
 
     @Override
     public void deleteStage(String id) {
-        stageMapper.deleteById(id);
+        try {
+            stageMapper.deleteById(id);
+        } catch (Exception e) {
+            throw new ResourceOperateFailedException("delete project failed by id: " + id, e);
+        }
+    }
+
+    @Override
+    public List<StageDto> findStagesByProjectId(String projectId) {
+        List<StageEntity> stageEntities = stageMapper.selectList(Wrappers.lambdaQuery(StageEntity.class)
+                .eq(StageEntity::getProjectId, projectId));
+
+        return null;
     }
 }

@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto updateUser(UserDto userDto) {
-        UserEntity userEntity = UserEntity.builder().build();
+        UserEntity userEntity = userMapper.selectById(userDto.getId());
         BeanUtils.copyProperties(userDto, userEntity);
         try {
             userMapper.updateById(userEntity);
