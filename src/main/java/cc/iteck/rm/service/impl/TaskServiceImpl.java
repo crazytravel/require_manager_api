@@ -3,6 +3,7 @@ package cc.iteck.rm.service.impl;
 import cc.iteck.rm.exception.ResourceNotFoundException;
 import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.TaskMapper;
+import cc.iteck.rm.model.stage.StageEntity;
 import cc.iteck.rm.model.task.OrderTaskForm;
 import cc.iteck.rm.model.task.TaskDto;
 import cc.iteck.rm.model.task.TaskEntity;
@@ -84,13 +85,16 @@ public class TaskServiceImpl implements TaskService {
         return taskDto;
     }
 
+    @Transactional
     @Override
     public void deleteTask(String id) {
-        try {
-            taskMapper.deleteById(id);
-        } catch (Exception e) {
-            throw new ResourceOperateFailedException("delete task failed by id: " + id, e);
+        TaskEntity currentTask = taskMapper.selectById(id);
+        TaskEntity preTask = taskMapper.selectOne(Wrappers.<TaskEntity>lambdaQuery().eq(TaskEntity::getNextId, id));
+        if (preTask != null) {
+            preTask.setNextId(currentTask.getNextId());
+            taskMapper.updateById(preTask);
         }
+        taskMapper.deleteById(id);
     }
 
     @Override

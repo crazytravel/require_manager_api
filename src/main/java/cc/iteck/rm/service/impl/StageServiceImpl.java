@@ -5,9 +5,11 @@ import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.StageMapper;
 import cc.iteck.rm.model.stage.StageDto;
 import cc.iteck.rm.model.stage.StageEntity;
+import cc.iteck.rm.model.task.TaskEntity;
 import cc.iteck.rm.service.StageService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,10 +43,14 @@ public class StageServiceImpl implements StageService {
     public StageDto createNewStage(StageDto stageDto) {
         StageEntity stageEntity = StageEntity.builder().build();
         BeanUtils.copyProperties(stageDto, stageEntity);
-        try {
-            stageMapper.insert(stageEntity);
-        } catch (Exception e) {
-            throw new ResourceOperateFailedException("create stage failed, error: ", e);
+        StageEntity tailStage = stageMapper.selectOne(Wrappers.<StageEntity>lambdaQuery()
+        .eq(StageEntity::getNextId, TAIL_STAGE_ID)
+        .eq(StageEntity::getProjectId, stageDto.getProjectId()));
+        stageEntity.setNextId(TAIL_STAGE_ID);
+        stageMapper.insert(stageEntity);
+        if (tailStage != null) {
+            tailStage.setNextId(stageEntity.getId());
+            stageMapper.updateById(tailStage);
         }
         BeanUtils.copyProperties(stageEntity, stageDto);
         return stageDto;
