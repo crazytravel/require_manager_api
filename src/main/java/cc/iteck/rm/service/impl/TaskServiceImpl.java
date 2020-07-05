@@ -22,6 +22,7 @@ public class TaskServiceImpl implements TaskService {
 
     private final static String TAIL_TASK_ID = "-1";
     private final TaskMapper taskMapper;
+
     public TaskServiceImpl(TaskMapper taskMapper) {
         this.taskMapper = taskMapper;
     }
@@ -37,14 +38,20 @@ public class TaskServiceImpl implements TaskService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public TaskDto createNewTask(TaskDto taskDto) {
         TaskEntity taskEntity = TaskEntity.builder().build();
         BeanUtils.copyProperties(taskDto, taskEntity);
-        try {
-            taskMapper.insert(taskEntity);
-        } catch (Exception e) {
-            throw new ResourceOperateFailedException("create task failed, error: ", e);
+        TaskEntity tailTask = taskMapper.selectOne(Wrappers.<TaskEntity>lambdaQuery()
+                .eq(TaskEntity::getNextId, TAIL_TASK_ID)
+                .eq(TaskEntity::getStageId, taskDto.getStageId())
+                .eq(TaskEntity::getProjectId, taskDto.getProjectId()));
+        taskEntity.setNextId(TAIL_TASK_ID);
+        taskMapper.insert(taskEntity);
+        if (tailTask != null) {
+            tailTask.setNextId(taskEntity.getId());
+            taskMapper.updateById(tailTask);
         }
         BeanUtils.copyProperties(taskEntity, taskDto);
         return taskDto;

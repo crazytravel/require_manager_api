@@ -44,7 +44,8 @@ public class StageController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<StageDto> updateStage(@RequestBody StageDto stageDto) {
+    public ResponseEntity<StageDto> updateStage(@PathVariable String id, @RequestBody StageDto stageDto) {
+        stageDto.setId(id);
         StageDto stage = stageService.updateStage(stageDto);
         return ResponseEntity.ok(stage);
     }
@@ -59,5 +60,17 @@ public class StageController {
     public ResponseEntity<List<TaskDto>> findSortedTasksByStageId(@PathVariable String id) {
         List<TaskDto> tasks = taskService.findSortedTasksByStageId(id);
         return ResponseEntity.ok(tasks);
+    }
+
+    @PatchMapping("/{id}/up")
+    public ResponseEntity<StageDto> changeOrderUp(@PathVariable String id) {
+        StageDto stageDto = stageService.moveUp(id);
+        return ResponseEntity.ok(stageDto);
+    }
+
+    @PatchMapping("/{id}/down")
+    public ResponseEntity<StageDto> changeOrderDown(@PathVariable String id) {
+        StageDto stageDto = stageService.moveDown(id);
+        return ResponseEntity.ok(stageDto);
     }
 }

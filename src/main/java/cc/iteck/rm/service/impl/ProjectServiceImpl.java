@@ -6,9 +6,11 @@ import cc.iteck.rm.mapper.ProjectMapper;
 import cc.iteck.rm.model.project.ProjectDto;
 import cc.iteck.rm.model.project.ProjectEntity;
 import cc.iteck.rm.service.ProjectService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,8 +25,9 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectDto> findAllProjects() {
-        List<ProjectEntity> projects = projectMapper.selectList(Wrappers.emptyWrapper());
+    public List<ProjectDto> findAllProjectsByCurrentUser(String userId) {
+        List<ProjectEntity> projects = projectMapper.selectList(Wrappers.<ProjectEntity>lambdaQuery()
+                .eq(ProjectEntity::getOwnerUserId, userId));
         return projects.stream().map(projectEntity -> {
             ProjectDto project = ProjectDto.builder().build();
             BeanUtils.copyProperties(projectEntity, project);
@@ -88,5 +91,16 @@ public class ProjectServiceImpl implements ProjectService {
         ProjectDto projectDto = ProjectDto.builder().build();
         BeanUtils.copyProperties(projectEntity, projectDto);
         return projectDto;
+    }
+
+    @Transactional
+    @Override
+    public ProjectDto activeProject(String id) {
+        ProjectEntity updateValue = ProjectEntity.builder().active(false).build();
+        projectMapper.update(updateValue, Wrappers.<ProjectEntity>lambdaUpdate().eq(ProjectEntity::getActive, true));
+        ProjectEntity projectEntity = projectMapper.selectById(id);
+        projectEntity.setActive(true);
+        projectMapper.updateById(projectEntity);
+        return findProject(id);
     }
 }

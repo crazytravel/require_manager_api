@@ -9,6 +9,7 @@ import cc.iteck.rm.service.StageService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,13 +77,16 @@ public class StageServiceImpl implements StageService {
         return stageDto;
     }
 
+    @Transactional
     @Override
     public void deleteStage(String id) {
-        try {
-            stageMapper.deleteById(id);
-        } catch (Exception e) {
-            throw new ResourceOperateFailedException("delete project failed by id: " + id, e);
+        StageEntity currentStage = stageMapper.selectById(id);
+        StageEntity preStage = stageMapper.selectOne(Wrappers.<StageEntity>lambdaQuery().eq(StageEntity::getNextId, id));
+        if (preStage != null) {
+            preStage.setNextId(currentStage.getNextId());
+            stageMapper.updateById(preStage);
         }
+        stageMapper.deleteById(id);
     }
 
     @Override
@@ -101,6 +105,54 @@ public class StageServiceImpl implements StageService {
         sort(stageEntities, dto.getId(), sortedStages);
         Collections.reverse(sortedStages);
         return sortedStages;
+    }
+
+    @Override
+    public List<StageDto> findStagesByProjectId(String projectId) {
+        List<StageEntity> stageEntities = stageMapper.selectList(Wrappers.<StageEntity>lambdaQuery()
+                .eq(StageEntity::getProjectId, projectId).orderByAsc(StageEntity::getCreatedAt));
+        return stageEntities.stream().map(stageEntity -> {
+            StageDto stageDto = StageDto.builder().build();
+            BeanUtils.copyProperties(stageEntity, stageDto);
+            return stageDto;
+        }).collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public StageDto moveUp(String id) {
+        StageEntity currentStage = stageMapper.selectById(id);
+        StageEntity preStage = stageMapper.selectOne(Wrappers.<StageEntity>lambdaQuery().eq(StageEntity::getNextId, id));
+        StageEntity prePreStage = stageMapper.selectOne(Wrappers.<StageEntity>lambdaQuery().eq(StageEntity::getNextId, preStage.getId()));
+
+        preStage.setNextId(currentStage.getNextId());
+        currentStage.setNextId(preStage.getId());
+        if (prePreStage != null) {
+            prePreStage.setNextId(id);
+            stageMapper.updateById(prePreStage);
+        }
+        stageMapper.updateById(currentStage);
+        stageMapper.updateById(preStage);
+        return findStage(id);
+    }
+
+    @Transactional
+    @Override
+    public StageDto moveDown(String id) {
+        StageEntity currentStage = stageMapper.selectById(id);
+        StageEntity preStage = stageMapper.selectOne(Wrappers.<StageEntity>lambdaQuery().eq(StageEntity::getNextId, id));
+        StageEntity nextStage = stageMapper.selectById(currentStage.getNextId());
+        String currentNextId = currentStage.getNextId();
+        String nextStageNextId = nextStage.getNextId();
+        currentStage.setNextId(nextStageNextId);
+        nextStage.setNextId(id);
+        if (preStage != null) {
+            preStage.setNextId(currentNextId);
+            stageMapper.updateById(preStage);
+        }
+        stageMapper.updateById(currentStage);
+        stageMapper.updateById(nextStage);
+        return findStage(id);
     }
 
     private void sort(List<StageEntity> stages, String currentId, List<StageDto> sortedStages) {

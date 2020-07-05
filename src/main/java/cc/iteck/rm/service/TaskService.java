@@ -1,5 +1,6 @@
 package cc.iteck.rm.service;
 
+import cc.iteck.rm.model.stage.StageDto;
 import cc.iteck.rm.model.task.OrderTaskForm;
 import cc.iteck.rm.model.task.TaskDto;
 
@@ -19,5 +20,4 @@ public interface TaskService {
     List<TaskDto> findSortedTasksByStageId(String stageId);
 
     TaskDto reorderTaskList(String id, OrderTaskForm orderTaskForm);
-
 }

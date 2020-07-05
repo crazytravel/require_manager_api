@@ -1,10 +1,13 @@
 package cc.iteck.rm.controller.v1;
 
 import cc.iteck.rm.model.project.ProjectDto;
+import cc.iteck.rm.model.security.JwtUserDetails;
 import cc.iteck.rm.model.stage.StageDto;
 import cc.iteck.rm.service.ProjectService;
 import cc.iteck.rm.service.StageService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -25,7 +28,8 @@ public class ProjectController {
 
     @GetMapping
     public ResponseEntity<List<ProjectDto>> listProjects() {
-        List<ProjectDto> projects = projectService.findAllProjects();
+        JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<ProjectDto> projects = projectService.findAllProjectsByCurrentUser(details.getUserId());
         return ResponseEntity.ok(projects);
     }
 
@@ -64,5 +68,11 @@ public class ProjectController {
     public ResponseEntity<ProjectDto> getActiveProject() {
         ProjectDto projectDto = projectService.findActiveProject();
         return ResponseEntity.ok(projectDto);
+    }
+
+    @PatchMapping("/{id}/active")
+    public ResponseEntity<ProjectDto> setActiveProject(@PathVariable String id) {
+        ProjectDto project = projectService.activeProject(id);
+        return ResponseEntity.ok(project);
     }
 }

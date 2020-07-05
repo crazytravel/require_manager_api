@@ -5,7 +5,7 @@ import cc.iteck.rm.model.project.ProjectDto;
 import java.util.List;
 
 public interface ProjectService {
-    List<ProjectDto> findAllProjects();
+    List<ProjectDto> findAllProjectsByCurrentUser(String userId);
 
     ProjectDto createNewProject(ProjectDto projectDto);
 
@@ -16,4 +16,6 @@ public interface ProjectService {
     void deleteProject(String id);
 
     ProjectDto findActiveProject();
+
+    ProjectDto activeProject(String id);
 }
