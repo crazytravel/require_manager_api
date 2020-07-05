@@ -14,4 +14,6 @@ public interface ProjectService {
     ProjectDto updateProject(ProjectDto projectDto);
 
     void deleteProject(String id);
+
+    ProjectDto findActiveProject();
 }

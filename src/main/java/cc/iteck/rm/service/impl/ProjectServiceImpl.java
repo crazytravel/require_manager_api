@@ -80,4 +80,13 @@ public class ProjectServiceImpl implements ProjectService {
             throw new ResourceOperateFailedException("delete project failed by id: " + id, e);
         }
     }
+
+    @Override
+    public ProjectDto findActiveProject() {
+        ProjectEntity projectEntity = projectMapper.selectOne(Wrappers.<ProjectEntity>lambdaQuery()
+                .eq(ProjectEntity::getActive, true));
+        ProjectDto projectDto = ProjectDto.builder().build();
+        BeanUtils.copyProperties(projectEntity, projectDto);
+        return projectDto;
+    }
 }

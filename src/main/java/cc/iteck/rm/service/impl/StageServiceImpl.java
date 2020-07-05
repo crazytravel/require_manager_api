@@ -10,12 +10,15 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class StageServiceImpl implements StageService {
 
+    private final static String TAIL_STAGE_ID = "-1";
     private final StageMapper stageMapper;
 
     public StageServiceImpl(StageMapper stageMapper) {
@@ -83,10 +86,36 @@ public class StageServiceImpl implements StageService {
     }
 
     @Override
-    public List<StageDto> findStagesByProjectId(String projectId) {
+    public List<StageDto> findSortedStagesByProjectId(String projectId) {
         List<StageEntity> stageEntities = stageMapper.selectList(Wrappers.lambdaQuery(StageEntity.class)
                 .eq(StageEntity::getProjectId, projectId));
+        if (stageEntities == null || stageEntities.isEmpty()) {
+            return new ArrayList<>();
+        }
+        StageEntity tailNode = stageEntities.stream().filter(stageEntity ->
+                TAIL_STAGE_ID.equals(stageEntity.getNextId())).findFirst().orElseThrow();
+        StageDto dto = StageDto.builder().build();
+        BeanUtils.copyProperties(tailNode, dto);
+        List<StageDto> sortedStages = new ArrayList<>();
+        sortedStages.add(dto);
+        sort(stageEntities, dto.getId(), sortedStages);
+        Collections.reverse(sortedStages);
+        return sortedStages;
+    }
 
-        return null;
+    private void sort(List<StageEntity> stages, String currentId, List<StageDto> sortedStages) {
+        if (sortedStages.size() == stages.size()) {
+            return;
+        }
+        stages.forEach(entity -> {
+            String nextId = entity.getNextId();
+            if (currentId.equals(nextId)) {
+                StageDto dto = StageDto.builder().build();
+                BeanUtils.copyProperties(entity, dto);
+                sortedStages.add(dto);
+                nextId = entity.getId();
+                sort(stages, nextId, sortedStages);
+            }
+        });
     }
 }

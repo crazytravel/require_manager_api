@@ -16,6 +16,5 @@ public class TaskDto extends AbstractDto {
     private String projectId;
     private String stageId;
     private String status;
-    private String previousId;
     private String nextId;
 }

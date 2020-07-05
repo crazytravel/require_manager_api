@@ -11,6 +11,5 @@ import lombok.*;
 public class StageDto extends AbstractDto {
     private String name;
     private String projectId;
-    private String previousId;
     private String nextId;
 }

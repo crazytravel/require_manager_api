@@ -1,5 +1,6 @@
 package cc.iteck.rm.service;
 
+import cc.iteck.rm.model.project.ProjectDto;
 import cc.iteck.rm.model.stage.StageDto;
 
 import java.util.List;
@@ -15,5 +16,6 @@ public interface StageService {
 
     void deleteStage(String id);
 
-    List<StageDto> findStagesByProjectId(String projectId);
+    List<StageDto> findSortedStagesByProjectId(String projectId);
+
 }

@@ -1,7 +1,9 @@
 package cc.iteck.rm.controller.v1;
 
 import cc.iteck.rm.model.stage.StageDto;
+import cc.iteck.rm.model.task.TaskDto;
 import cc.iteck.rm.service.StageService;
+import cc.iteck.rm.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -14,17 +16,13 @@ import java.util.List;
 public class StageController {
 
     private final StageService stageService;
+    private final TaskService taskService;
 
-    public StageController(StageService stageService) {
+    public StageController(StageService stageService, TaskService taskService) {
         this.stageService = stageService;
+        this.taskService = taskService;
     }
 
-
-    @GetMapping
-    public ResponseEntity<List<StageDto>> findStagesByProjectId(@RequestParam String projectId) {
-        List<StageDto> stages = stageService.findStagesByProjectId(projectId);
-        return ResponseEntity.ok(stages);
-    }
 
     @GetMapping
     public ResponseEntity<List<StageDto>> listStages() {
@@ -57,4 +55,9 @@ public class StageController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{id}/tasks")
+    public ResponseEntity<List<TaskDto>> findSortedTasksByStageId(@PathVariable String id) {
+        List<TaskDto> tasks = taskService.findSortedTasksByStageId(id);
+        return ResponseEntity.ok(tasks);
+    }
 }

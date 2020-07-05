@@ -13,6 +13,5 @@ import lombok.*;
 public class StageEntity extends AbstractEntity {
     private String name;
     private String projectId;
-    private String previousId;
     private String nextId;
 }

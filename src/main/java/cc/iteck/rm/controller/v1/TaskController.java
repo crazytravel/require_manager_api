@@ -1,5 +1,7 @@
 package cc.iteck.rm.controller.v1;
 
+import cc.iteck.rm.model.SucceedWrapper;
+import cc.iteck.rm.model.task.OrderTaskForm;
 import cc.iteck.rm.model.task.TaskDto;
 import cc.iteck.rm.service.TaskService;
 import org.springframework.http.ResponseEntity;
@@ -51,4 +53,11 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/reorder")
+    public ResponseEntity<SucceedWrapper<TaskDto>> reorderTaskList(@PathVariable String id,
+                                                          @RequestBody OrderTaskForm orderTaskForm) {
+        TaskDto task = taskService.reorderTaskList(id, orderTaskForm);
+        SucceedWrapper<TaskDto> success = SucceedWrapper.<TaskDto>builder().code(200).message("success").data(task).build();
+        return ResponseEntity.ok(success);
+    }
 }
