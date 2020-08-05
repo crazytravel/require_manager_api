@@ -19,6 +19,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         var userDto = userService.findUserWithPermissionsByUsername(username);
+        if (userDto == null) {
+            throw new UsernameNotFoundException("不能找到用户");
+        }
         return JwtUserDetails.builder()
                 .userId(userDto.getId())
                 .username(userDto.getUsername())

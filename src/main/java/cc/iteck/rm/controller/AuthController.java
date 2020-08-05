@@ -1,7 +1,8 @@
 package cc.iteck.rm.controller;
 
 import cc.iteck.rm.exception.AuthenticationException;
-import cc.iteck.rm.model.account.LoginForm;
+import cc.iteck.rm.model.ErrorWrapper;
+import cc.iteck.rm.model.account.SignForm;
 import cc.iteck.rm.model.account.UserDto;
 import cc.iteck.rm.model.security.JwtUserDetails;
 import cc.iteck.rm.model.security.TokenWrapper;
@@ -9,6 +10,7 @@ import cc.iteck.rm.security.JwtTokenProvider;
 import cc.iteck.rm.service.UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,13 +40,37 @@ public class AuthController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<TokenWrapper> authToken(@RequestBody LoginForm loginForm) {
+    public ResponseEntity<TokenWrapper> authToken(@RequestBody SignForm loginForm) {
         UserDto userDto = userService.findUsernameAndPassword(loginForm.getUsername(), loginForm.getPassword());
         var jwtUserDetails = JwtUserDetails.builder()
                 .userId(userDto.getId())
                 .username(userDto.getUsername())
                 .password(userDto.getPassword())
                 .permissions(userDto.getPermissions())
+                .build();
+        var token = jwtTokenProvider.generateToken(jwtUserDetails);
+        return setCookie(token);
+    }
+
+    @PostMapping("/sign-up")
+    public ResponseEntity<?> signUp(@RequestBody SignForm loginForm) {
+        UserDto userDto = userService.findUserByUsername(loginForm.getUsername());
+        if (userDto != null) {
+            ErrorWrapper errorWrapper = ErrorWrapper.builder().code(400).error(HttpStatus.BAD_REQUEST.toString())
+                    .errorDescription("已存在用户，请直接登录").build();
+            return ResponseEntity.badRequest().body(errorWrapper);
+        }
+        UserDto newUser = UserDto.builder()
+                .username(loginForm.getUsername())
+                .password(loginForm.getPassword())
+                .nickname(loginForm.getNickname())
+                .build();
+        UserDto user = userService.createUser(newUser);
+        var jwtUserDetails = JwtUserDetails.builder()
+                .userId(user.getId())
+                .username(user.getUsername())
+                .password(user.getPassword())
+                .permissions(user.getPermissions())
                 .build();
         var token = jwtTokenProvider.generateToken(jwtUserDetails);
         return setCookie(token);
@@ -75,6 +101,9 @@ public class AuthController {
         }
         var username = jwtTokenProvider.getUsernameFromToken(accessToken);
         var userDto = userService.findUserByUsername(username);
+        if (userDto == null) {
+            throw new AuthenticationException("无效的登录信息，请重新登录");
+        }
         var lastModifyDate = Date.from(userDto.getModifiedAt().atZone(ZoneId.systemDefault())
                 .toInstant());
         TokenWrapper tokenWrapper = jwtTokenProvider.refreshToken(accessToken, refreshToken, lastModifyDate);

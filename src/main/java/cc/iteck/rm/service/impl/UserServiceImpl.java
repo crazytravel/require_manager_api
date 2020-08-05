@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
         UserDto userDto = UserDto.builder().build();
         var userEntity = userMapper.selectById(id);
         if (userEntity == null) {
-            throw new ResourceNotFoundException("cannot found user by id: " + id);
+            return null;
         }
         BeanUtils.copyProperties(userEntity, userDto);
         return userDto;
@@ -67,6 +67,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto findUserWithPermissionsByUsername(String username) {
         var userDto = findUserByUsername(username);
+        if (userDto == null) {
+            return null;
+        }
         var permissions = userMapper.findUserPermissionsByUsername(username);
         var permissionDtos = permissions.stream().map(permission -> {
             var permissionDto = PermissionDto.builder().build();
@@ -81,7 +84,7 @@ public class UserServiceImpl implements UserService {
     public UserDto findUserByUsername(String username) {
         var userEntity = userMapper.selectOne(Wrappers.<UserEntity>lambdaQuery().eq(UserEntity::getUsername, username));
         if (userEntity == null) {
-            throw new ResourceNotFoundException("cannot found the user with username: " + username);
+            return null;
         }
         var userDto = UserDto.builder().build();
         BeanUtils.copyProperties(userEntity, userDto);

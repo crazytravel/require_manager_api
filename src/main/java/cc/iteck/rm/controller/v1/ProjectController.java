@@ -1,13 +1,14 @@
 package cc.iteck.rm.controller.v1;
 
+import cc.iteck.rm.model.account.UserDto;
 import cc.iteck.rm.model.project.ProjectDto;
 import cc.iteck.rm.model.security.JwtUserDetails;
 import cc.iteck.rm.model.stage.StageDto;
 import cc.iteck.rm.service.ProjectService;
+import cc.iteck.rm.service.ProjectUserService;
 import cc.iteck.rm.service.StageService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -20,10 +21,12 @@ public class ProjectController {
 
     private final ProjectService projectService;
     private final StageService stageService;
+    private final ProjectUserService projectUserService;
 
-    public ProjectController(ProjectService projectService, StageService stageService) {
+    public ProjectController(ProjectService projectService, StageService stageService, ProjectUserService projectUserService) {
         this.projectService = projectService;
         this.stageService = stageService;
+        this.projectUserService = projectUserService;
     }
 
     @GetMapping
@@ -60,12 +63,14 @@ public class ProjectController {
 
     @GetMapping("/{id}/stages")
     public ResponseEntity<List<StageDto>> findSortedStagesByProjectId(@PathVariable String id) {
+//        JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<StageDto> stages = stageService.findSortedStagesByProjectId(id);
         return ResponseEntity.ok(stages);
     }
 
     @GetMapping("/active")
     public ResponseEntity<ProjectDto> getActiveProject() {
+        JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ProjectDto projectDto = projectService.findActiveProject();
         return ResponseEntity.ok(projectDto);
     }
@@ -74,5 +79,17 @@ public class ProjectController {
     public ResponseEntity<ProjectDto> setActiveProject(@PathVariable String id) {
         ProjectDto project = projectService.activeProject(id);
         return ResponseEntity.ok(project);
+    }
+
+    @GetMapping("/{id}/users")
+    public ResponseEntity<List<UserDto>> findProjectUsers(@PathVariable String id) {
+        List<UserDto> users = projectUserService.findProjectUsers(id);
+        return ResponseEntity.ok(users);
+    }
+
+    @PostMapping("/{id}/users")
+    public ResponseEntity<Boolean> assignUserToProject(@PathVariable String id, @RequestBody List<String> userIds) {
+        Boolean status = projectUserService.addUserToProject(id, userIds);
+        return ResponseEntity.ok(status);
     }
 }

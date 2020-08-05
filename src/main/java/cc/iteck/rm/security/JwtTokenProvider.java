@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -112,10 +113,14 @@ public class JwtTokenProvider {
         var currentTimeMillis = System.currentTimeMillis();
         final var createdDate = new Date(currentTimeMillis);
         final var expirationDate = new Date(currentTimeMillis + accessTokenExpiration * 1000);
-        List<String> authorities = jwtUserDetails
-                .getPermissions()
-                .stream()
-                .map(PermissionDto::getAuthority).collect(Collectors.toList());
+        List<String> authorities = new ArrayList<>();
+        if (jwtUserDetails.getPermissions() != null) {
+            authorities = jwtUserDetails
+                    .getPermissions()
+                    .stream()
+                    .map(PermissionDto::getAuthority).collect(Collectors.toList());
+        }
+
         var algorithmHS = Algorithm.HMAC256(accessTokenSecret);
         return JWT.create()
                 .withIssuer(issuer)
