@@ -63,6 +63,15 @@ CREATE TABLE RM_PROJECT
     modified_at   timestamp
 );
 
+CREATE TABLE RM_PROJECT_USER
+(
+    id          varchar(100) primary key,
+    project_id  varchar(100) not null,
+    user_id     varchar(100) not null,
+    created_at  timestamp,
+    modified_at timestamp
+);
+
 CREATE TABLE RM_STAGE
 (
     id          varchar(100) primary key,
@@ -108,6 +117,9 @@ VALUES ('0', 'test1', '测试项目1', '这是一个测试项目1', '0', true),
        ('5', 'test6', '测试项目6', '这是一个测试项目6', '0', false),
        ('6', 'test7', '测试项目7', '这是一个测试项目7', '0', false),
        ('7', 'test8', '测试项目8', '这是一个测试项目8', '0', false);
+
+INSERT INTO RM_PROJECT_USER(id, project_id, user_id)
+VALUES ('0', '0', '0');
 
 INSERT INTO RM_STAGE (id, project_id, name, next_id)
 VALUES ('0', '0', '需求列表', '1'),

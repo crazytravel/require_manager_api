@@ -3,12 +3,15 @@ package cc.iteck.rm.service.impl;
 import cc.iteck.rm.exception.ResourceNotFoundException;
 import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.ProjectMapper;
+import cc.iteck.rm.mapper.ProjectUserMapper;
 import cc.iteck.rm.model.project.ProjectDto;
 import cc.iteck.rm.model.project.ProjectEntity;
+import cc.iteck.rm.model.project.ProjectUserEntity;
+import cc.iteck.rm.model.security.JwtUserDetails;
 import cc.iteck.rm.service.ProjectService;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.BeanUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +22,11 @@ import java.util.stream.Collectors;
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectMapper projectMapper;
+    private final ProjectUserMapper projectUserMapper;
 
-    public ProjectServiceImpl(ProjectMapper projectMapper) {
+    public ProjectServiceImpl(ProjectMapper projectMapper, ProjectUserMapper projectUserMapper) {
         this.projectMapper = projectMapper;
+        this.projectUserMapper = projectUserMapper;
     }
 
     @Override
@@ -36,11 +41,17 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
     public ProjectDto createNewProject(ProjectDto projectDto) {
         ProjectEntity projectEntity = ProjectEntity.builder().build();
         BeanUtils.copyProperties(projectDto, projectEntity);
+        JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         try {
             projectMapper.insert(projectEntity);
+            ProjectUserEntity projectUserEntity = ProjectUserEntity.builder()
+                    .projectId(projectEntity.getId())
+                    .userId(details.getUserId()).build();
+            projectUserMapper.insert(projectUserEntity);
         } catch (Exception e) {
             throw new ResourceOperateFailedException("create project failed, error: ", e);
         }

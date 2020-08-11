@@ -2,11 +2,13 @@ package cc.iteck.rm.controller.v1;
 
 import cc.iteck.rm.model.account.UserDto;
 import cc.iteck.rm.model.project.ProjectDto;
+import cc.iteck.rm.model.project.ProjectUserDto;
 import cc.iteck.rm.model.security.JwtUserDetails;
 import cc.iteck.rm.model.stage.StageDto;
 import cc.iteck.rm.service.ProjectService;
 import cc.iteck.rm.service.ProjectUserService;
 import cc.iteck.rm.service.StageService;
+import cc.iteck.rm.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -82,8 +84,8 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}/users")
-    public ResponseEntity<List<UserDto>> findProjectUsers(@PathVariable String id) {
-        List<UserDto> users = projectUserService.findProjectUsers(id);
+    public ResponseEntity<List<ProjectUserDto>> findProjectUsers(@PathVariable String id) {
+        List<ProjectUserDto> users = projectUserService.findProjectUsers(id);
         return ResponseEntity.ok(users);
     }
 
@@ -92,4 +94,5 @@ public class ProjectController {
         Boolean status = projectUserService.addUserToProject(id, userIds);
         return ResponseEntity.ok(status);
     }
+
 }
