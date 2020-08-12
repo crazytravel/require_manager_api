@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="cc.iteck.rm.mapper.ProjectMapper">
+    <select id="findProjectsWithUserId" resultType="cc.iteck.rm.model.project.ProjectEntity">
+        select p.*
+        from rm_project p
+        left join rm_project_user u on p.id = u.project_id
+        where u.user_id = #{userId} and p.active = true
+        <if test="owner != null">
+            and u.owner = true
+        </if>
+    </select>
 </mapper>

@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface ProjectUserService extends IService<ProjectUserEntity> {
 
-    List<ProjectUserDto> findProjectUsers(String projectId);
+    List<UserDto> findProjectUsers(String projectId);
 
     Boolean addUserToProject(String projectId, List<String> userIds);
 }

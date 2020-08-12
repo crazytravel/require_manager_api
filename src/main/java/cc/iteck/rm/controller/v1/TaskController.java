@@ -61,4 +61,5 @@ public class TaskController {
         SucceedWrapper<TaskDto> success = SucceedWrapper.<TaskDto>builder().code(200).message("success").data(task).build();
         return ResponseEntity.ok(success);
     }
+
 }

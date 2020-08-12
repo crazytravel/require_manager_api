@@ -3,7 +3,6 @@ package cc.iteck.rm.service.impl;
 import cc.iteck.rm.exception.ResourceNotFoundException;
 import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.TaskMapper;
-import cc.iteck.rm.model.stage.StageEntity;
 import cc.iteck.rm.model.task.OrderTaskForm;
 import cc.iteck.rm.model.task.TaskDto;
 import cc.iteck.rm.model.task.TaskEntity;
@@ -32,6 +31,16 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<TaskDto> findAllTasks() {
         List<TaskEntity> tasks = taskMapper.selectList(Wrappers.emptyWrapper());
+        return tasks.stream().map(taskEntity -> {
+            TaskDto task = TaskDto.builder().build();
+            BeanUtils.copyProperties(taskEntity, task);
+            return task;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TaskDto> filterTasksWithUser(String userId) {
+        List<TaskEntity> tasks = taskMapper.selectList(Wrappers.<TaskEntity>lambdaQuery().eq(TaskEntity::getUserId, userId));
         return tasks.stream().map(taskEntity -> {
             TaskDto task = TaskDto.builder().build();
             BeanUtils.copyProperties(taskEntity, task);

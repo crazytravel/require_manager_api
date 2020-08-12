@@ -1,6 +1,7 @@
 package cc.iteck.rm.model.task;
 
 import cc.iteck.rm.model.AbstractDto;
+import cc.iteck.rm.model.account.UserDto;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
@@ -17,4 +18,5 @@ public class TaskDto extends AbstractDto {
     private String stageId;
     private String status;
     private String nextId;
+    private String userId;
 }

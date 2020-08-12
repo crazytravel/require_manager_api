@@ -12,4 +12,5 @@ public class ProjectUserDto extends AbstractDto {
 
     private String projectId;
     private String userId;
+    private Boolean owner;
 }

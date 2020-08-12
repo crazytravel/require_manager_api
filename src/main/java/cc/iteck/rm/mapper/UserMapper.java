@@ -10,4 +10,6 @@ import java.util.List;
 public interface UserMapper extends BaseMapper<UserEntity> {
 
     List<PermissionEntity> findUserPermissionsByUsername(@Param("username") String username);
+
+    List<UserEntity> findUsersByProjectId(@Param("projectId") String projectId);
 }

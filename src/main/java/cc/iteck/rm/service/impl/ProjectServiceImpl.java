@@ -31,8 +31,17 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectDto> findAllProjectsByCurrentUser(String userId) {
-        List<ProjectEntity> projects = projectMapper.selectList(Wrappers.<ProjectEntity>lambdaQuery()
-                .eq(ProjectEntity::getOwnerUserId, userId));
+        List<ProjectEntity> projects = projectMapper.findProjectsWithUserId(userId, null);
+        return projects.stream().map(projectEntity -> {
+            ProjectDto project = ProjectDto.builder().build();
+            BeanUtils.copyProperties(projectEntity, project);
+            return project;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProjectDto> findOwnProjects(String userId) {
+        List<ProjectEntity> projects = projectMapper.findProjectsWithUserId(userId, true);
         return projects.stream().map(projectEntity -> {
             ProjectDto project = ProjectDto.builder().build();
             BeanUtils.copyProperties(projectEntity, project);

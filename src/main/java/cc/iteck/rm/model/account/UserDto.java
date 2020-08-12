@@ -1,6 +1,7 @@
 package cc.iteck.rm.model.account;
 
 import cc.iteck.rm.model.AbstractDto;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
@@ -19,6 +20,7 @@ public class UserDto extends AbstractDto {
     @NotNull
     private String username;
     @NotNull
+    @JsonIgnore
     private String password;
     private String nickname;
     private String realName;

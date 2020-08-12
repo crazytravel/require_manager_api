@@ -7,6 +7,8 @@ import java.util.List;
 public interface ProjectService {
     List<ProjectDto> findAllProjectsByCurrentUser(String userId);
 
+    List<ProjectDto> findOwnProjects(String userId);
+
     ProjectDto createNewProject(ProjectDto projectDto);
 
     ProjectDto findProject(String id);

@@ -14,4 +14,5 @@ public class ProjectUserEntity extends AbstractEntity {
 
     private String projectId;
     private String userId;
+    private Boolean owner;
 }

@@ -1,16 +1,15 @@
 package cc.iteck.rm.service.impl;
 
 import cc.iteck.rm.mapper.ProjectUserMapper;
+import cc.iteck.rm.mapper.UserMapper;
 import cc.iteck.rm.model.account.UserDto;
-import cc.iteck.rm.model.project.ProjectUserDto;
+import cc.iteck.rm.model.account.UserEntity;
 import cc.iteck.rm.model.project.ProjectUserEntity;
 import cc.iteck.rm.service.ProjectUserService;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,29 +17,30 @@ import java.util.stream.Collectors;
 public class ProjectUserServiceImpl extends ServiceImpl<ProjectUserMapper, ProjectUserEntity> implements ProjectUserService {
 
     private final ProjectUserMapper projectUserMapper;
+    private final UserMapper userMapper;
 
-    public ProjectUserServiceImpl(ProjectUserMapper projectUserMapper) {
+    public ProjectUserServiceImpl(ProjectUserMapper projectUserMapper, UserMapper userMapper) {
         this.projectUserMapper = projectUserMapper;
+        this.userMapper = userMapper;
     }
 
     @Override
-    public List<ProjectUserDto> findProjectUsers(String projectId) {
-        List<ProjectUserEntity> projectUserEntities = projectUserMapper.selectList(Wrappers.<ProjectUserEntity>lambdaQuery()
-                .eq(ProjectUserEntity::getProjectId, projectId));
-        return projectUserEntities.stream().map(projectUserEntity -> {
-            ProjectUserDto projectUserDto = ProjectUserDto.builder().build();
-            BeanUtils.copyProperties(projectUserEntity, projectUserDto);
-            return projectUserDto;
+    public List<UserDto> findProjectUsers(String projectId) {
+        List<UserEntity> userEntities = userMapper.findUsersByProjectId(projectId);
+        return userEntities.stream().map(userEntity -> {
+            UserDto userDto = UserDto.builder().build();
+            BeanUtils.copyProperties(userEntity, userDto);
+            return userDto;
         }).collect(Collectors.toList());
     }
 
     @Override
     public Boolean addUserToProject(String projectId, List<String> userIds) {
         List<ProjectUserEntity> projectUserEntities = userIds.stream().map(userId -> ProjectUserEntity.builder()
-                    .projectId(projectId)
-                    .userId(userId)
-                    .build())
-        .collect(Collectors.toList());
+                .projectId(projectId)
+                .userId(userId)
+                .build())
+                .collect(Collectors.toList());
         return this.saveOrUpdateBatch(projectUserEntities);
     }
 }

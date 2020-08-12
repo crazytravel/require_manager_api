@@ -4,12 +4,20 @@
     <select id="findUserPermissionsByUsername" resultType="cc.iteck.rm.model.account.PermissionEntity">
         select p.*
         from rm_permission p
-        left join rm_role_permission rp
-            on p.id = rp.permission_id
-        left join rm_user_role ur
-            on ur.role_id = rp.role_id
-        left join rm_user u
-            on u.id = ur.user_id
+                     left join rm_role_permission rp
+                on p.id = rp.permission_id
+                     left join rm_user_role ur
+                on ur.role_id = rp.role_id
+                     left join rm_user u
+                on u.id = ur.user_id
         where u.username = #{username}
+    </select>
+
+    <select id="findUsersByProjectId" resultType="cc.iteck.rm.model.account.UserEntity">
+        select u.*
+        from rm_user u
+                     left join rm_project_user p
+                on u.id = p.user_id
+        where p.project_id = #{projectId}
     </select>
 </mapper>

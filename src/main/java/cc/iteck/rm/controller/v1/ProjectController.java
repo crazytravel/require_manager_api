@@ -38,6 +38,14 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    @GetMapping("/own")
+    public ResponseEntity<List<ProjectDto>> listOwnProjects() {
+        JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<ProjectDto> projects = projectService.findOwnProjects(details.getUserId());
+        return ResponseEntity.ok(projects);
+    }
+
+
     @PostMapping
     public ResponseEntity<ProjectDto> createProject(@RequestBody ProjectDto projectDto) {
         ProjectDto project = projectService.createNewProject(projectDto);
@@ -84,8 +92,8 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}/users")
-    public ResponseEntity<List<ProjectUserDto>> findProjectUsers(@PathVariable String id) {
-        List<ProjectUserDto> users = projectUserService.findProjectUsers(id);
+    public ResponseEntity<List<UserDto>> findProjectUsers(@PathVariable String id) {
+        List<UserDto> users = projectUserService.findProjectUsers(id);
         return ResponseEntity.ok(users);
     }
 
