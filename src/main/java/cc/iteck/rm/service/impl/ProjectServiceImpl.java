@@ -7,11 +7,9 @@ import cc.iteck.rm.mapper.ProjectUserMapper;
 import cc.iteck.rm.model.project.ProjectDto;
 import cc.iteck.rm.model.project.ProjectEntity;
 import cc.iteck.rm.model.project.ProjectUserEntity;
-import cc.iteck.rm.model.security.JwtUserDetails;
 import cc.iteck.rm.service.ProjectService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.BeanUtils;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,7 +29,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectDto> findAllProjectsByCurrentUser(String userId) {
-        List<ProjectEntity> projects = projectMapper.findProjectsWithUserId(userId, null);
+        List<ProjectEntity> projects = projectMapper.findProjectsWithUserId(userId, null, null);
         return projects.stream().map(projectEntity -> {
             ProjectDto project = ProjectDto.builder().build();
             BeanUtils.copyProperties(projectEntity, project);
@@ -41,7 +39,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public List<ProjectDto> findOwnProjects(String userId) {
-        List<ProjectEntity> projects = projectMapper.findProjectsWithUserId(userId, true);
+        List<ProjectEntity> projects = projectMapper.findProjectsWithUserId(userId, true, null);
         return projects.stream().map(projectEntity -> {
             ProjectDto project = ProjectDto.builder().build();
             BeanUtils.copyProperties(projectEntity, project);
@@ -51,15 +49,15 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public ProjectDto createNewProject(ProjectDto projectDto) {
+    public ProjectDto createNewProject(ProjectDto projectDto, String userId) {
         ProjectEntity projectEntity = ProjectEntity.builder().build();
         BeanUtils.copyProperties(projectDto, projectEntity);
-        JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         try {
             projectMapper.insert(projectEntity);
             ProjectUserEntity projectUserEntity = ProjectUserEntity.builder()
                     .projectId(projectEntity.getId())
-                    .userId(details.getUserId()).build();
+                    .owner(true)
+                    .userId(userId).build();
             projectUserMapper.insert(projectUserEntity);
         } catch (Exception e) {
             throw new ResourceOperateFailedException("create project failed, error: ", e);
@@ -105,9 +103,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public ProjectDto findActiveProject() {
-        ProjectEntity projectEntity = projectMapper.selectOne(Wrappers.<ProjectEntity>lambdaQuery()
-                .eq(ProjectEntity::getActive, true));
+    public ProjectDto findActiveProject(String userId) {
+        List<ProjectEntity> projects = projectMapper.findProjectsWithUserId(userId, null, true);
+        if (projects == null || projects.size() == 0) {
+            return null;
+        }
+        ProjectEntity projectEntity = projects.get(0);
         ProjectDto projectDto = ProjectDto.builder().build();
         BeanUtils.copyProperties(projectEntity, projectDto);
         return projectDto;

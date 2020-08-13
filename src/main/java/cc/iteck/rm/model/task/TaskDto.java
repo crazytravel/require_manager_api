@@ -1,7 +1,6 @@
 package cc.iteck.rm.model.task;
 
 import cc.iteck.rm.model.AbstractDto;
-import cc.iteck.rm.model.account.UserDto;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
@@ -12,7 +11,7 @@ import lombok.*;
 public class TaskDto extends AbstractDto {
 
     private static final long serialVersionUID = 1419527644248591421L;
-
+    private String code;
     private String content;
     private String projectId;
     private String stageId;

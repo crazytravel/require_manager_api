@@ -2,13 +2,11 @@ package cc.iteck.rm.controller.v1;
 
 import cc.iteck.rm.model.account.UserDto;
 import cc.iteck.rm.model.project.ProjectDto;
-import cc.iteck.rm.model.project.ProjectUserDto;
 import cc.iteck.rm.model.security.JwtUserDetails;
 import cc.iteck.rm.model.stage.StageDto;
 import cc.iteck.rm.service.ProjectService;
 import cc.iteck.rm.service.ProjectUserService;
 import cc.iteck.rm.service.StageService;
-import cc.iteck.rm.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -48,7 +46,8 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<ProjectDto> createProject(@RequestBody ProjectDto projectDto) {
-        ProjectDto project = projectService.createNewProject(projectDto);
+        JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ProjectDto project = projectService.createNewProject(projectDto, details.getUserId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/" + project.getId()).build().toUri();
         return ResponseEntity.created(location).body(project);
     }
@@ -81,7 +80,7 @@ public class ProjectController {
     @GetMapping("/active")
     public ResponseEntity<ProjectDto> getActiveProject() {
         JwtUserDetails details = (JwtUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ProjectDto projectDto = projectService.findActiveProject();
+        ProjectDto projectDto = projectService.findActiveProject(details.getUserId());
         return ResponseEntity.ok(projectDto);
     }
 

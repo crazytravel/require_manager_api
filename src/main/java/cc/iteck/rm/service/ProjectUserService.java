@@ -1,7 +1,6 @@
 package cc.iteck.rm.service;
 
 import cc.iteck.rm.model.account.UserDto;
-import cc.iteck.rm.model.project.ProjectUserDto;
 import cc.iteck.rm.model.project.ProjectUserEntity;
 import com.baomidou.mybatisplus.extension.service.IService;
 

@@ -9,6 +9,7 @@ import cc.iteck.rm.service.ProjectUserService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,8 +35,10 @@ public class ProjectUserServiceImpl extends ServiceImpl<ProjectUserMapper, Proje
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public Boolean addUserToProject(String projectId, List<String> userIds) {
+        projectUserMapper.deleteBatchIds(userIds);
         List<ProjectUserEntity> projectUserEntities = userIds.stream().map(userId -> ProjectUserEntity.builder()
                 .projectId(projectId)
                 .userId(userId)

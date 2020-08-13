@@ -54,7 +54,7 @@ CREATE TABLE RM_ROLE_PERMISSION
 CREATE TABLE RM_PROJECT
 (
     id          varchar(100) primary key,
-    code        varchar(100) not null,
+    code        varchar(100) unique not null,
     name        varchar(200) not null,
     description text,
     active      boolean default false,
@@ -85,8 +85,9 @@ CREATE TABLE RM_STAGE
 CREATE TABLE RM_TASK
 (
     id          varchar(100) primary key,
-    project_id  varchar(100) not null,
-    stage_id    varchar(100) not null,
+    code        varchar(100) unique not null,
+    project_id  varchar(100)        not null,
+    stage_id    varchar(100)        not null,
     content     text,
     status      varchar(20),
     next_id     varchar(100),
@@ -97,17 +98,16 @@ CREATE TABLE RM_TASK
 
 
 INSERT INTO RM_USER (id, username, password, nickname, real_name)
-VALUES ('0', 'admin', '{bcrypt}$2a$10$Mauvb3WBioPsOf9hZHX7l.np69XxobcoDn.kOEvcuu6YSafmqgQ6q', '默认用户', '默认用户');
+VALUES ('0', 'admin', '{bcrypt}$2a$10$Mauvb3WBioPsOf9hZHX7l.np69XxobcoDn.kOEvcuu6YSafmqgQ6q', '系统管理员', '系统管理员'),
+       ('1', 'larry', '{bcrypt}$2a$10$Mauvb3WBioPsOf9hZHX7l.np69XxobcoDn.kOEvcuu6YSafmqgQ6q', 'Larry', 'Larry'),
+       ('2', 'sam', '{bcrypt}$2a$10$Mauvb3WBioPsOf9hZHX7l.np69XxobcoDn.kOEvcuu6YSafmqgQ6q', 'Sam', 'Sam');
+
 
 INSERT INTO RM_PROJECT (id, code, name, description, active)
-VALUES ('0', 'test1', '测试项目1', '这是一个测试项目1', true),
-       ('1', 'test2', '测试项目2', '这是一个测试项目2', false),
-       ('2', 'test3', '测试项目3', '这是一个测试项目3', false),
-       ('3', 'test4', '测试项目4', '这是一个测试项目4', false),
-       ('4', 'test5', '测试项目5', '这是一个测试项目5', false),
-       ('5', 'test6', '测试项目6', '这是一个测试项目6', false),
-       ('6', 'test7', '测试项目7', '这是一个测试项目7', false),
-       ('7', 'test8', '测试项目8', '这是一个测试项目8', false);
+VALUES ('0', 'test1', '仓储系统', '仓储系统', true),
+       ('1', 'test2', 'ERP系统', 'ERP系统', false),
+       ('2', 'test3', 'APP项目', 'APP项目', false),
+       ('3', 'test4', '微信小程序', '微信小程序', false);
 
 INSERT INTO RM_PROJECT_USER(id, project_id, user_id, owner)
 VALUES ('0', '0', '0', true);
@@ -119,8 +119,8 @@ VALUES ('0', '0', '需求列表', '1'),
        ('3', '0', '测试中', '4'),
        ('4', '0', '已完成', '-1');
 
-INSERT INTO RM_TASK (id, project_id, stage_id, content, next_id)
-VALUES ('0', '0', '0', '这是一个任务1', '1'),
-       ('1', '0', '0', '这是一个任务2', '2'),
-       ('2', '0', '0', '这是一个任务3', '3'),
-       ('3', '0', '0', '这是一个任务4', '-1');
+INSERT INTO RM_TASK (id, project_id, code, stage_id, content, next_id)
+VALUES ('0', '0', 'm-1', '0', '初始化项目git仓库', '1'),
+       ('1', '0', 'm-2', '0', '申请域名', '2'),
+       ('2', '0', 'm-3', '0', '设计线框图', '3'),
+       ('3', '0', 'm-4', '0', '分析业务流程', '-1');

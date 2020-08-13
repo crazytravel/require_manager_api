@@ -3,9 +3,11 @@ package cc.iteck.rm.service.impl;
 import cc.iteck.rm.exception.ResourceNotFoundException;
 import cc.iteck.rm.exception.ResourceOperateFailedException;
 import cc.iteck.rm.mapper.TaskMapper;
+import cc.iteck.rm.model.project.ProjectDto;
 import cc.iteck.rm.model.task.OrderTaskForm;
 import cc.iteck.rm.model.task.TaskDto;
 import cc.iteck.rm.model.task.TaskEntity;
+import cc.iteck.rm.service.ProjectService;
 import cc.iteck.rm.service.TaskService;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.springframework.beans.BeanUtils;
@@ -21,9 +23,12 @@ import java.util.stream.Collectors;
 public class TaskServiceImpl implements TaskService {
 
     private final static String TAIL_TASK_ID = "-1";
+
+    private final ProjectService projectService;
     private final TaskMapper taskMapper;
 
-    public TaskServiceImpl(TaskMapper taskMapper) {
+    public TaskServiceImpl(ProjectService projectService, TaskMapper taskMapper) {
+        this.projectService = projectService;
         this.taskMapper = taskMapper;
     }
 
@@ -51,6 +56,10 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     @Override
     public TaskDto createNewTask(TaskDto taskDto) {
+        ProjectDto project = projectService.findProject(taskDto.getProjectId());
+        int count = taskMapper.selectCount(Wrappers.<TaskEntity>lambdaQuery()
+                .eq(TaskEntity::getProjectId, taskDto.getProjectId())) + 1;
+        taskDto.setCode(project.getCode() + '-' + count);
         TaskEntity taskEntity = TaskEntity.builder().build();
         BeanUtils.copyProperties(taskDto, taskEntity);
         TaskEntity tailTask = taskMapper.selectOne(Wrappers.<TaskEntity>lambdaQuery()

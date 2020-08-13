@@ -8,5 +8,7 @@ import java.util.List;
 
 public interface ProjectMapper extends BaseMapper<ProjectEntity> {
 
-    List<ProjectEntity> findProjectsWithUserId(@Param("userId") String userId, @Param("owner") Boolean owner);
+    List<ProjectEntity> findProjectsWithUserId(@Param("userId") String userId,
+                                               @Param("owner") Boolean owner,
+                                                @Param("active") Boolean active);
 }

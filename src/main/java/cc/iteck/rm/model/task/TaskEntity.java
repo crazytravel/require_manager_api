@@ -11,6 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @TableName("rm_task")
 public class TaskEntity extends AbstractEntity {
+    private String code;
     private String content;
     private String projectId;
     private String stageId;

@@ -5,9 +5,12 @@
         select p.*
         from rm_project p
         left join rm_project_user u on p.id = u.project_id
-        where u.user_id = #{userId} and p.active = true
+        where u.user_id = #{userId}
         <if test="owner != null">
             and u.owner = true
+        </if>
+        <if test="active != null">
+            and p.active = true
         </if>
     </select>
 </mapper>

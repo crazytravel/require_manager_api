@@ -9,7 +9,7 @@ public interface ProjectService {
 
     List<ProjectDto> findOwnProjects(String userId);
 
-    ProjectDto createNewProject(ProjectDto projectDto);
+    ProjectDto createNewProject(ProjectDto projectDto, String userId);
 
     ProjectDto findProject(String id);
 
@@ -17,7 +17,7 @@ public interface ProjectService {
 
     void deleteProject(String id);
 
-    ProjectDto findActiveProject();
+    ProjectDto findActiveProject(String userId);
 
     ProjectDto activeProject(String id);
 }
